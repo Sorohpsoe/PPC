@@ -1,9 +1,12 @@
-from multiprocessing import Array ,Value
+from multiprocessing import Array, Value, Semaphore
 from random import shuffle
+import signal
 
 class Game:
     
     def __init__(self, num_players) :
+        
+        self.colors = ["red","blue","green","black","white"]
         
         self.num_players = Value('i',num_players)
         self.fuse = Value('i',3)
@@ -14,7 +17,7 @@ class Game:
         self.create_cards()
         self.shuffle_cards()
         self.deals_cards()
-        
+                
         
     def create_suites(self) :
         self.suites = []
@@ -24,6 +27,8 @@ class Game:
     def create_cards(self) :
         
         #Create set of cards
+        
+        self.discard_pile = Array('i',[-1]*(self.num_players.value*10))
         
         self.draw_pile = Array('i', [0] * (self.num_players.value*10))
         
@@ -57,12 +62,12 @@ class Game:
         
         
     def show_cards(self,Array) :
-        couleurs = ["red","blue","green","black","white"]
+
     
         cartes = list(Array)
         for i in range(len(cartes)) :
-            couleur = cartes[i]//5
-            cartes[i] = f"{couleurs[couleur]} {cartes[i]%5+1}"
+            color = cartes[i]//5
+            cartes[i] = f"{self.colors[color]} {cartes[i]%5+1}"
         
         for i in cartes :
             print(i)
@@ -70,7 +75,6 @@ class Game:
     def deals_cards(self):
         """Deal cards to each player"""
         self.players = []
-
         for i in range(self.num_players.value):
             self.players.append(Array('i', [0] * (5)))
 
@@ -78,9 +82,67 @@ class Game:
                 self.players[i][j] = self.draw_pile[0]
                 for k in range(len(self.draw_pile) - 1):
                     self.draw_pile[k] = self.draw_pile[k + 1]
-                self.draw_pile[len(list(self.draw_pile)) - 1] = -1
+                self.draw_pile[len(list(self.draw_pile)) - 1] = -1 
 
-    def game_won(self) :
+    def is_finished(self) :
+        
+        won = True
+        
+        lost = False
+        
+        for suite in self.suites :
+            if suite[4]%5+1 != 5  :
+                won = False
+                
+        if self.fuse.value == 0 :
+            lost = True
+        else :
+            i = 0
+            while (i<len(list(self.discard_pile)) and (self.discard_pile[i] != 5 or self.discard_pile[i] != -1 )) :
+                i += 1
+            if self.discard_pile[i] == 5 :
+                lost = True
+                
+        return won,lost
+
+        
+             
+    def start(self) :
+        
+        num_turn = 0
+            
+        won,lost = self.is_finished()
+        
+        locks = []
+        game_lock = Semaphore(0)
+        for _ in range(self.num_players) :
+            locks.append(Semaphore(0))
+        
+        
+        while not won and not lost :
+            
+            num_turn += 1
+            
+            locks[(num_turn+1)%self.num_players].release()
+            
+            game_lock.acquire()
+            
+        
+            won,lost = self.is_finished()
+            print("Turn",self.num_turn,"is over")
+            
+        
+        
+        
+        if won :
+            print("You won!")
+        else :
+            print("You lost!")
+            
+        print("The game lasted",self.num_turn,"turns")
+        
+
+                
         
         
             
