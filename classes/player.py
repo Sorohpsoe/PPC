@@ -8,6 +8,7 @@ class Player :
     
     def __init__(self, id, hands, lock,suites,number_players, fuse, info,port):
         self.id = id
+        
         self.number_players = number_players
         self.lock = lock
 
@@ -71,16 +72,18 @@ class Player :
                 color_text += " \033[37m"+color+"\033[0m ║"
                 number_text += "   \033[37m"+str(number)+"\033[0m   ║"
                 bottom += "═══════╩"
-                
-        top = top[:-1] + "╗"
-        color_text = color_text[:-1] + "║"
-        number_text = number_text[:-1] + "║"
-        bottom = bottom[:-1] + "╝"
-        
-        print(top)
-        print(color_text)
-        print(number_text)
-        print(bottom)
+        if len(top) == 1 :
+            print("Vide\n")
+        else :
+            top = top[:-1] + "╗"
+            color_text = color_text[:-1] + "║"
+            number_text = number_text[:-1] + "║"
+            bottom = bottom[:-1] + "╝"
+            
+            print(top)
+            print(color_text)
+            print(number_text)
+            print(bottom)
 
 
     def draw_card(self,index):
@@ -225,17 +228,23 @@ class Player :
     
     def game_on(self) :
         
-        signal.signal(signal.SIGUSR1, self.handler)
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_socket.connect(("localhost", self.port))
-        
+
         while True :
         
             self.lock.acquire()
+
+            print(f"lock {self.id} acquired")    
             
-            self.my_turn()
+            input("")
             
-            self.game_lock.release()
+            
+            message = f"Coucou"
+            self.tcp_socket.sendall(message.encode())
+            
+            #self.my_turn()
+            
         
         
 if __name__ == "__main__" :

@@ -136,13 +136,12 @@ class Game:
         lost = False
         
         for suite in self.suites :
-            if suite[4]%5+1 != 5  :
+            if len(suite) != 5 :
                 won = False
                 
         if self.fuse == 0 :
             lost = True
         else :
-            i = 0
             if 5 in self.discard_pile :
                 lost = True
                 
@@ -163,35 +162,55 @@ class Game:
             self.players.append(Player(i,self.hands,self.locks[i],self.suites,self.num_players,self.fuse,self.info,self.port))
 
 
-    def get_socket_message(self, client_socket, address, buffer, lock):
+    def get_socket_message(self, client_socket,lock,my_lock):
+        
+        print("ouverture handler")
         
         with client_socket:
             
             while True :
-                print("Connected by:", address)
-                while True:
-                    data = client_socket.recv(1024).decode()
-                    buffer += data
-                    lock.release()
+                
+                my_lock.acquire()
+
+                data = client_socket.recv(1024).decode()
+                self.buffer += data
+                lock.release()
 
             
 
     def start(self) :
         
         HOST = "localhost"
+        self.create_players()
     
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             
             server_socket.bind((HOST, self.port))
             server_socket.listen(self.num_players)
             
-            self.buffer_locks = Semaphore(0)
+            self.game_lock = Semaphore(0)
+            self.buffer_locks = []
+            
+            for _ in range(self.num_players) :
+                self.buffer_locks.append(Semaphore(0))
+            
             self.buffer = ""
 
+            player_threads = []                
+            for i in range(self.num_players) :
+                t = threading.Thread(target=self.players[i].game_on)
+                print(f"thread {i} created")
+                t.start()
+                player_threads.append(t)
             
+
+            tcp_threads=[]
             for i in range(self.num_players) :
                 conn, addr = server_socket.accept()
-                t = threading.Thread(target=self.get_socket_message, args=(conn, addr,self.buffer, self.buffer_locks))
+                t = threading.Thread(target=self.get_socket_message, args=(conn, self.game_lock,self.buffer_locks[i]))
+                print(f"connection {i} connected")
+                t.start()
+                tcp_threads.append(t)
             
             num_turn = 0
                 
@@ -201,41 +220,36 @@ class Game:
             
             while not won and not lost :
                 
+                print("Beggining of turn : ",num_turn)
+                
                 num_turn += 1
                 
-                self.locks[(num_turn+1)%self.num_players].release()
+                self.buffer_locks[(num_turn-1)%self.num_players].release()
+                self.locks[(num_turn-1)%self.num_players].release()
                 
-                self.buffer_locks.acquire()
+                self.game_lock.acquire()
                 
                 print(self.buffer)
-                
-                
             
                 won,lost = self.is_finished()
-                print("Turn",self.num_turn,"is over")
+                print("Turn",num_turn,"is over")
                 
             if won :
                 print("You won!")
             else :
                 print("You lost!")
-                
-            print("The game lasted",self.num_turn,"turns")
-        
 
-                
-        
-        
-            
-        
 if __name__ == "__main__" :
     
-    jeu = Game(5)
+    jeu = Game(5,6669)
+    jeu.start()
     
-
+'''
     for i in range(jeu.num_players) :
         print("Player",i+1,"has the following cards:")
         print(jeu.hands[i])
         jeu.show_cards(jeu.hands[i])
+'''
 
         
 
