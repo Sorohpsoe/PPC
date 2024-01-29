@@ -84,7 +84,7 @@ class Player :
 
 
     def draw_card(self,index):
-        message = f"Le joueur {self.id} veut piocher une carte"
+        message = f"{self.id} draw"
         self.tcp_socket.send(message.encode())
 
 
@@ -131,7 +131,7 @@ class Player :
     def discard(self,index):
         if index<len(self.hand):
             card=self.hand[index]
-            message = f"Le joueur {self.id} defausse la carte {card}"
+            message = f"{self.id} discard {card}"
             self.tcp_socket.send(message.encode())
         else :
             print(f"La carte n'existe pas")
@@ -162,7 +162,7 @@ class Player :
                     if vide:
                         #Si notre carte est un 1 on la place sinon on la jette
                         if card_number==1:
-                            message = f"Le joueur {self.id} joue la carte {card} dans la pile {index_suites}"
+                            message = f"{self.id} play {card} {index_suites}"
                             self.tcp_socket.send(message.encode())
 
                         else:
@@ -171,7 +171,7 @@ class Player :
                         last_card=self.suites[index_suites][len(self.suites[index_suites])-1]
                         #Si notre carte est bien la carte de la meme couleur incrementée de 1 on la place, sinon on la jette
                         if last_card//5==card_color and last_card%5+1==card_number-1:
-                            message = f"Le joueur {self.id} joue la carte {card} dans la pile {index_suites}"
+                            message = f"{self.id} play {card} {index_suites}"
                             self.tcp_socket.send(message.encode())
                         else:
                             self.discard(index_card)
@@ -179,15 +179,15 @@ class Player :
 
     def my_turn(self):
         # Afficher toutes les suites avec la fonction show_cards
-        for i, suite in (self.suites):
+        for i in range(len(self.suites)):
             print(f"Suite {i} : \n")
-            self.show_cards(suite)
+            self.show_cards(self.suites[i])
         
         # Afficher toutes les mains sauf celle avec l'index self.id
-        for i, hand in (self.hands):
+        for i in range(len(self.hands)):
             if i != self.id:
                 print(f"Main du joueur {i}:\n")
-                self.show_cards(hand)
+                self.show_cards(self.hands[i])
         
         if self.info > 0:
             action = input("Voulez-vous donner une information (information) ou jouer une carte (jouer) ? ")
