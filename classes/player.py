@@ -11,6 +11,9 @@ class Player :
         self.number_players = number_players
         self.lock = lock
 
+        self.hand=hands[id]
+        self.hands=hands
+
         self.suites = suites
 
         self.fuse = fuse
@@ -242,7 +245,7 @@ if __name__ == "__main__" :
     hands=[hand1,hand2,hand3]
     
     
-    player = Player(0,hands,153,[20,123,23131],[456,564,456,3455],[435,453,53],3,1,2)
-    
+    player = Player(0,hands,153,[20,123,23131],[456,564,456,3455],[435,453,53],3,1)
+    player.show_cards(player.hand)
     player.my_turn()
     
