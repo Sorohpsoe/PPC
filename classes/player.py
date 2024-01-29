@@ -208,7 +208,7 @@ class Player :
             self.give_info(player_num)
 
         else:
-            card_index = int(input("Quelle carte voulez-vous jouer ? (0-{len(self.hands[0])-1}): "))
+            card_index = int(input(f"Quelle carte voulez-vous jouer ? (0-{len(self.hands[0])-1}): "))
 
             while card_index < 0 or card_index >= len(self.hands[0]):
                 card_index = int(input(f"Veuillez entrer un numéro de carte valide (0-{len(self.hands[0])-1}): "))
@@ -237,13 +237,8 @@ class Player :
 
             print(f"lock {self.id} acquired")    
             
-            input("")
             
-            
-            message = f"Coucou"
-            self.tcp_socket.sendall(message.encode())
-            
-            #self.my_turn()
+            self.my_turn()
             
         
         
