@@ -90,13 +90,13 @@ class Player :
 
                 vide=True
                 #On test si la liste souhaitée est vide 
-                if self.suites[index_suites][0]!=-1 :
+                if len(self.suites[index_suites])==0:
                     vide=False
 
                 test_color=True
                 for i in range(len(list(self.suites))):
-                    #On regarde pour les suites non vides si la couleur n'est pas deja utilisée
-                    if self.suites[i][0]!=-1 and i!=index_suites:  
+                    #On regarde pour les suites non vides autre que celles on l'on veut jouer si la couleur n'est pas deja utilisée
+                    if len(self.suites[i])!=0 and i!=index_suites:  
                         if self.suites[i][0]//5==card_color:
                             test_color=False
 
@@ -107,22 +107,19 @@ class Player :
                     if vide:
                         #Si notre carte est un 1 on la place sinon on la jette
                         if card_number==1:
-                            self.suites[index_suites][0]=card
-                            self.hand[index_card]=-1
+                            self.suites[index_suites].append(card)
+                            self.hand.pop(index_card)
 
                         else:
                             self.discard(index_card)
-                    else:
-                        #On cherche l'index de la derniere carte de la suite
-                        last_card_index = 4
-                        while (last_card_index>=0 and self.suites[index_suites][last_card_index] == -1):
-                            last_card_index -= 1
-                            #Si notre carte est bien la carte de la meme couleur incrementée de 1 on la place, sinon on la jette
-                            if self.suites[index_suites][last_card_index]//5==card_color and self.suites[index_suites][last_card_index]%5+1==card_number-1:
-                                self.suites[index_suites].append(card)
-                                self.hand[index_card]=-1
-                            else:
-                                self.discard(index_card)
+                    else: 
+                        last_card=self.suites[index_suites][len(self.suites[index_suites])]
+                        #Si notre carte est bien la carte de la meme couleur incrementée de 1 on la place, sinon on la jette
+                        if last_card//5==card_color and last_card%5+1==card_number-1:
+                            self.suites[index_suites].append(card)
+                            self.hand.pop(index_card)
+                        else:
+                            self.discard(index_card)
 
                 
             
