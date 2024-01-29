@@ -1,7 +1,6 @@
 from multiprocessing import Array ,Value, Semaphore
 from os import system, kill, getpid
 import signal
-import signal
 import socket
 
 class Player :
@@ -25,13 +24,6 @@ class Player :
 
 
 
-    def handler(self,sig,frame):
-        if  sig == signal.SIGUSR1 :
-            
-            #close queue
-            
-            pid = getpid()
-            kill(pid, signal.SIGKILL)
 
     def show_cards(self,cartes) :
         
@@ -225,7 +217,6 @@ class Player :
     
     def game_on(self) :
         
-        signal.signal(signal.SIGUSR1, self.handler)
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_socket.connect(("localhost", self.port))
         
@@ -238,8 +229,6 @@ class Player :
             input("")
             
             
-            message = f"Coucou"
-            self.tcp_socket.sendall(message.encode())
             
             self.my_turn()
             

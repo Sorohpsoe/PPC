@@ -241,7 +241,7 @@ class Game:
 
 if __name__ == "__main__" :
     
-    jeu = Game(5,6669)
+    jeu = Game(5,6698)
     jeu.start()
     
 '''
