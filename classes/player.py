@@ -5,26 +5,21 @@ import signal
 import socket
 
 class Player :
-    class Player:
-        def __init__(self, id, hands, lock, game_lock, suites, draw_pile, discard_pile, number_players, fuse, info):
-            self.id = id
-            self.number_players = number_players
-            self.lock = lock
-            self.game_lock = game_lock
+    
+    def __init__(self, id, hands, lock,suites,number_players, fuse, info,port):
+        self.id = id
+        self.number_players = number_players
+        self.lock = lock
 
-            self.suites = suites
-            self.draw_pile = draw_pile
-            self.discard_pile = discard_pile
+        self.suites = suites
 
-            self.fuse = fuse
-            self.info = info
+        self.fuse = fuse
+        self.info = info
 
-            self.colors = ["red", "blue", "green", "black", "white"]
+        self.colors = ["red", "blue", "green", "black", "white"]
 
-            # Initialize TCP session
-            self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.tcp_socket.connect(("localhost", 1234))
-        
+        self.port=port
+
 
 
     def handler(self,sig,frame):
@@ -34,6 +29,56 @@ class Player :
             
             pid = getpid()
             kill(pid, signal.SIGKILL)
+
+    def show_cards(self,cartes) :
+        
+        top = "╔"
+        color_text = "║"
+        number_text = "║"
+        bottom = "╚"
+        
+        
+        for i in range(len(cartes)) :
+            color = self.colors[cartes[i]//5]
+            number = cartes[i]%5+1
+
+            
+            if color == "red" :
+                top += "═══════╦"
+                color_text += "  \033[31m"+color+"\033[0m  ║"
+                number_text += "   \033[31m"+str(number)+"\033[0m   ║"
+                bottom += "═══════╩"
+            if color == "blue" :
+                top += "═══════╦"
+                color_text += " \033[34m"+color+"\033[0m  ║"
+                number_text += "   \033[34m"+str(number)+"\033[0m   ║"
+                bottom += "═══════╩"
+            if color == "green" :
+                top += "═══════╦"
+                color_text += " \033[32m"+color+"\033[0m ║"
+                number_text += "   \033[32m"+str(number)+"\033[0m   ║"
+                bottom += "═══════╩"
+            if color == "black" :
+                top += "═══════╦"
+                color_text += " \033[30m"+color+"\033[0m ║"
+                number_text += "   \033[30m"+str(number)+"\033[0m   ║"
+                bottom += "═══════╩"
+            if color == "white" :
+                top += "═══════╦"
+                color_text += " \033[37m"+color+"\033[0m ║"
+                number_text += "   \033[37m"+str(number)+"\033[0m   ║"
+                bottom += "═══════╩"
+                
+        top = top[:-1] + "╗"
+        color_text = color_text[:-1] + "║"
+        number_text = number_text[:-1] + "║"
+        bottom = bottom[:-1] + "╝"
+        
+        print(top)
+        print(color_text)
+        print(number_text)
+        print(bottom)
+
 
     def draw_card(self,index):
         message = f"Le joueur {self.id} veut piocher une carte"
@@ -83,8 +128,6 @@ class Player :
     def discard(self,index):
         if index<len(self.hand):
             card=self.hand[index]
-            self.discard_pile.append(card)
-            self.hand[index]=-1
             message = f"Le joueur {self.id} defausse la carte {card}"
             self.tcp_socket.send(message.encode())
         else :
@@ -116,8 +159,6 @@ class Player :
                     if vide:
                         #Si notre carte est un 1 on la place sinon on la jette
                         if card_number==1:
-                            self.suites[index_suites].append(card)
-                            self.hand.pop(index_card)
                             message = f"Le joueur {self.id} joue la carte {card} dans la pile {index_suites}"
                             self.tcp_socket.send(message.encode())
 
@@ -127,19 +168,63 @@ class Player :
                         last_card=self.suites[index_suites][len(self.suites[index_suites])-1]
                         #Si notre carte est bien la carte de la meme couleur incrementée de 1 on la place, sinon on la jette
                         if last_card//5==card_color and last_card%5+1==card_number-1:
-                            self.suites[index_suites].append(card)
-                            self.hand.pop(index_card)
                             message = f"Le joueur {self.id} joue la carte {card} dans la pile {index_suites}"
                             self.tcp_socket.send(message.encode())
                         else:
                             self.discard(index_card)
 
+
+    def my_turn(self):
+        # Afficher toutes les suites avec la fonction show_cards
+        for i, suite in (self.suites):
+            print(f"Suite {i} : \n")
+            self.show_cards(suite)
+        
+        # Afficher toutes les mains sauf celle avec l'index self.id
+        for i, hand in (self.hands):
+            if i != self.id:
+                print(f"Main du joueur {i}:\n")
+                self.show_cards(hand)
+        
+        if self.info > 0:
+            action = input("Voulez-vous donner une information (information) ou jouer une carte (jouer) ? ")
+            while action != "information" and action != "jouer":
+                action = input("Veuillez entrer 'information' pour donner une information ou 'jouer' pour jouer une carte : ")
+        else:
+            print("Vous n'avez pas de jeton d'information vous pouvez seulement jouer")
+            action = "jouer"
+
+        if action == "information":
+            player_num = int(input(f"À quel joueur voulez-vous donner une information ? (0-{self.number_players-1}): "))
+
+            while player_num < 1 or player_num > self.number_players - 1:
+                player_num = int(input(f"Veuillez entrer un numéro de joueur valide (0-{self.number_players-1}): "))
+            self.give_info(player_num)
+
+        else:
+            card_index = int(input("Quelle carte voulez-vous jouer ? (0-{len(self.hands[0])-1}): "))
+
+            while card_index < 0 or card_index >= len(self.hands[0]):
+                card_index = int(input(f"Veuillez entrer un numéro de carte valide (0-{len(self.hands[0])-1}): "))
+
+            suite_index = int(input(f"Dans quelle suite voulez-vous jouer la carte ? (0-{len(self.suites)-1}): "))
+
+            while suite_index < 0 or suite_index >= len(self.suites):
+                suite_index = int(input(f"Veuillez entrer un numéro de suite valide (0-{len(self.suites)-1}): "))
+
+            self.play_card(card_index, suite_index)
+                    
                 
+
+
+                            
             
     
     def game_on(self) :
         
         signal.signal(signal.SIGUSR1, self.handler)
+        self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.tcp_socket.connect(("localhost", self.port))
         
         while True :
         
