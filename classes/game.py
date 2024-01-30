@@ -175,7 +175,16 @@ class Game:
                 data = client_socket.recv(1024).decode()
                 self.buffer += data
                 lock.release()
-
+    
+    def logic(self) :
+        infos = self.buffer.split(" ")
+        self.bufffer = ""
+        if infos[1] == "play" :
+            self.play(infos[0],infos[2],infos[3])
+        elif infos[1] == "discard" :
+            self.discard(infos[0],infos[2])
+        elif infos[1] == "info" :
+            self.information(infos[0],infos[2])
             
 
     def start(self) :
@@ -229,7 +238,8 @@ class Game:
                 
                 self.game_lock.acquire()
                 
-                print(self.buffer)
+                self.logic()
+               
             
                 won,lost = self.is_finished()
                 print("Turn",num_turn,"is over")
