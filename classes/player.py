@@ -215,7 +215,8 @@ class Player :
                     self.discard(index_card)
                     
             #If the suite is not empty, get the last card of the suite
-            #The card played must be the same color and the number must be incremented by 1
+            #The card played must be the same color and the number must be incremented by 1 
+            #The suite must not be full
             #If not discard the card
             else: 
                 last_card=self.suites[index_suites][len(self.suites[index_suites])-1]
