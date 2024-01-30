@@ -64,16 +64,18 @@ class Player :
                 color_text += " \033[37m"+color+"\033[0m ║"
                 number_text += "   \033[37m"+str(number)+"\033[0m   ║"
                 bottom += "═══════╩"
-                
+      
         top = top[:-1] + "╗"
         color_text = color_text[:-1] + "║"
         number_text = number_text[:-1] + "║"
         bottom = bottom[:-1] + "╝"
-        
-        print(top)
-        print(color_text)
-        print(number_text)
-        print(bottom)
+        if len(top)!=1: 
+            print(top)
+            print(color_text)
+            print(number_text)
+            print(bottom)
+        else:
+            print("Suite vide\n")
 
     def give_info(self,neighbor):
         check_choice=False
@@ -93,7 +95,6 @@ class Player :
                 else:
                     print("Couleur invalide. Veuillez choisir une couleur parmi :", self.colors)
             self.send_message_q(f"{neighbor}{color_input[0]}")
-            print(f"message q add:{neighbor}{color_input[0]}")
             message = f"{self.id} info {neighbor}"
             self.tcp_socket.send(message.encode())
             
@@ -110,7 +111,6 @@ class Player :
             
             # Envoyer l'info a game ou au joueur
             self.send_message_q(f"{neighbor}{number_input}")
-            print(f"message q add:{neighbor}{number_input}")
             message = f"{self.id} info {neighbor}"
             self.tcp_socket.send(message.encode())
             
@@ -128,8 +128,8 @@ class Player :
             message = f"{self.id} discard {index}"
             self.indice[index][0]=0
             self.indice[index][1]=0
-            print(f"message:{message}")
             self.tcp_socket.send(message.encode())
+
         else :
             print(f"La carte n'existe pas")
 
@@ -175,6 +175,8 @@ class Player :
                             self.indice[index_card][1]=0
                             message = f"{self.id} play {index_card} {index_suites}"
                             self.tcp_socket.send(message.encode())
+                            if card_number==5:
+                                self.tokens["info"]+=1
                         else:
                             self.discard(index_card)
 
@@ -189,7 +191,6 @@ class Player :
     
     def set_indice_and_reload(self):
         copie_queue = list(self.get_all_msg())
-        print(copie_queue)
         for i in range (0,len(copie_queue),2):
             ID=int(copie_queue[i])
             info=copie_queue[i+1]
@@ -284,21 +285,23 @@ class Player :
                 except:
                     suite_index = input(f"Veuillez entrer un numéro de suite valide (0-{len(self.suites)-1}): ")
             self.play_card(card_index, suite_index)
+
                      
-    
+  
     def game_on(self) :
         
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.tcp_socket.connect(("localhost", self.port))
         
         while True :
+
         
             self.lock.acquire()
 
-            print(f"lock {self.id} acquired")    
-            
-            input("")
-            
+            if self.tokens["game_over"]:
+                self.tcp_socket.close()
+                print("socket closed")
+                break
             
             
             self.my_turn()

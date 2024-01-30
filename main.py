@@ -1,6 +1,8 @@
 from classes.game import Game
-from classes.player import Player
-import threading
+from multiprocessing import Process
+import signal
+import os
+
 
 def get_number_of_players():
     is_a_number = False 
@@ -15,9 +17,8 @@ def get_number_of_players():
             print("Invalid input. Please enter a valid integer.")
     return num_players
 
-
-
 if __name__ == "__main__":
-    
+
     num_players = get_number_of_players()
-    game = Game(num_players)
+    game = Game(num_players,6658)
+    game.start()
