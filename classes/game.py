@@ -142,12 +142,15 @@ class Game:
             while True :
                 
                 my_lock.acquire()
+                
+                if not self.tokens["game_over"]:
+                    data = client_socket.recv(1024).decode()
+                    self.buffer = data
+
+                lock.release()
+                
                 if self.tokens["game_over"]:
                     break
-
-                data = client_socket.recv(1024).decode()
-                self.buffer = data
-                lock.release()
     
     def logic(self) :
         infos = self.buffer.split(" ")
@@ -203,12 +206,13 @@ class Game:
         
         
         while not won and not lost :
-            print('\033c')
+            #print('\033c')
             print("Debut du tour : ",num_turn)
-            input(f"C'est au joueur {(num_turn-1)%self.num_players} de jouer, appuyer sur une touche pour continuer")
+            
         
             
             num_turn += 1
+            input(f"C'est au joueur {(num_turn-1)%self.num_players} de jouer, appuyer sur entrée pour continuer")
             
             self.buffer_locks[(num_turn-1)%self.num_players].release()
             self.locks[(num_turn-1)%self.num_players].release()
@@ -219,7 +223,7 @@ class Game:
             self.bufffer = ""
 
             won,lost = self.is_finished()
-            input("Appuyez sur une touche pour finir votre tour")
+            input("Appuyez sur entrée pour finir votre tour")
 
             print("Tour ",num_turn,"est terminé")
             
@@ -230,12 +234,11 @@ class Game:
 
         for conn in connections:
             conn.close()
-            print("conection closed")
 
         self.tokens["game_over"]=True
         
         server_socket.close()
-        
+
         for lock in self.locks:
             lock.release()
         

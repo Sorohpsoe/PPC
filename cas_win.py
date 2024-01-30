@@ -1,7 +1,6 @@
 from classes.game import Game
 
 
-
 def get_number_of_players():
     is_a_number = False 
     while not is_a_number:
@@ -19,8 +18,9 @@ if __name__ == "__main__":
 
     num_players = 2
     game = Game(num_players,6659)
-    
-    
+    game.suites[0]=[0,1,2,3,4]
+    game.suites[1]=[5,6,7,8]
+    game.hands[0]=[9,1,2,1,5]
     
     
     game.start()

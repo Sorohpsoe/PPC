@@ -95,6 +95,7 @@ class Player :
                 else:
                     print("Couleur invalide. Veuillez choisir une couleur parmi :", self.colors)
             self.send_message_q(f"{neighbor}{color_input[0]}")
+            print(f"{neighbor}{color_input[0]}")
             message = f"{self.id} info {neighbor}"
             self.tcp_socket.send(message.encode())
             
@@ -111,6 +112,7 @@ class Player :
             
             # Envoyer l'info a game ou au joueur
             self.send_message_q(f"{neighbor}{number_input}")
+            print(f"{neighbor}{number_input}")
             message = f"{self.id} info {neighbor}"
             self.tcp_socket.send(message.encode())
             
@@ -191,10 +193,16 @@ class Player :
     
     def set_indice_and_reload(self):
         copie_queue = list(self.get_all_msg())
+        print("queue : ",copie_queue)
+
+        data_to_resend = ""
+
         for i in range (0,len(copie_queue),2):
             ID=int(copie_queue[i])
             info=copie_queue[i+1]
+            print(ID,self.id)
             if ID == self.id:
+                print(info)
                 if info=='1' or info=='2' or info=='3' or info=='4' or info=='5':
                     for i in range(len(self.hand)):
                         if self.hand[i]%5+1==int(info):
@@ -204,8 +212,12 @@ class Player :
                         if self.colors[self.hand[i]//5][0]==info:
                             self.indice[i][0] = True
             else:
-                self.queue.put(copie_queue[i])
-                self.queue.put(copie_queue[i+1])
+                data_to_resend+=f"{ID}"
+                data_to_resend+=info
+        
+        print(data_to_resend)
+        self.send_message_q(f"{data_to_resend}")
+
 
     def show_indice(self):
         for i in range(len(self.indice)):
@@ -300,7 +312,6 @@ class Player :
 
             if self.tokens["game_over"]:
                 self.tcp_socket.close()
-                print("socket closed")
                 break
             
             
