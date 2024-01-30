@@ -20,5 +20,5 @@ def get_number_of_players():
 if __name__ == "__main__":
 
     num_players = get_number_of_players()
-    game = Game(num_players,6658)
+    game = Game(num_players,6659)
     game.start()

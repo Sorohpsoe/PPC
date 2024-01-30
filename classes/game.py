@@ -166,6 +166,8 @@ class Game:
         self.create_players()
     
         server_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
         
         server_socket.bind((HOST, self.port))
         server_socket.listen(self.num_players)
@@ -231,6 +233,8 @@ class Game:
             print("conection closed")
 
         self.tokens["game_over"]=True
+        
+        server_socket.close()
         
         for lock in self.locks:
             lock.release()
