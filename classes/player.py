@@ -75,9 +75,6 @@ class Player :
         print(number_text)
         print(bottom)
 
-
-
-
     def give_info(self,neighbor):
         check_choice=False
         while not check_choice:
