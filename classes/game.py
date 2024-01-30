@@ -148,7 +148,7 @@ class Game:
                     self.buffer = data
 
                 lock.release()
-                
+
                 if self.tokens["game_over"]:
                     break
     
@@ -206,7 +206,7 @@ class Game:
         
         
         while not won and not lost :
-            #print('\033c')
+            print('\033c')
             print("Debut du tour : ",num_turn)
             
         
