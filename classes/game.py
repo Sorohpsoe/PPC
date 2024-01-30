@@ -1,4 +1,4 @@
-from multiprocessing import Manager, Semaphore
+from multiprocessing import Manager, Semaphore, Queue
 from random import shuffle
 import signal
 import threading
@@ -12,8 +12,8 @@ class Game:
         self.colors = ["red","blue","green","black","white"]
         
         self.num_players = num_players
-        self.fuse = 3
-        self.info = 3+num_players
+        
+        self.tokens={"fuse":3,"info":3+num_players}
         self.port = port
         
         self.discard_pile = []
@@ -22,6 +22,7 @@ class Game:
         self.create_cards()
         self.shuffle_cards()
         self.deals_cards()
+        self.queue=Queue()
         
                 
         
@@ -128,20 +129,26 @@ class Game:
                 self.hands[i].append(self.draw_pile.pop())
 
     def information(self,id_joueur,id_neighbor):
-        self.info-=1
+        self.tokens["info"]-=1
+        print("info given")
         
     def discard(self,id_joueur,index_card):
         card=self.hands[id_joueur].pop(index_card)
         self.discard_pile.append(card)
-        self.fuse-=1
+        self.tokens["fuse"]-=1
+        print("card discarded")
+        self.draw(id_joueur)
     
     def draw(self,id_joueur):
         card=self.draw_pile.pop()
         self.hands[id_joueur].append(card)
+
     
     def play(self,id_joueur,index_card,index_suites):
         card=self.hands[id_joueur].pop(index_card)
         self.suites[index_suites].append(card)
+        print("card played")
+        self.draw(id_joueur)
 
                 
                 
@@ -156,7 +163,7 @@ class Game:
             if len(suite) != 5 :
                 won = False
                 
-        if self.fuse == 0 :
+        if self.tokens["fuse"] == 0 :
             lost = True
         else :
             if 5 in self.discard_pile :
@@ -176,7 +183,7 @@ class Game:
             
             self.locks.append(Semaphore(0))
             
-            self.players.append(Player(i,self.hands,self.locks[i],self.suites,self.num_players,self.fuse,self.info,self.port))
+            self.players.append(Player(i,self.hands,self.locks[i],self.suites,self.num_players,self.tokens,self.port,self.queue))
 
 
     def get_socket_message(self, client_socket,lock,my_lock):
@@ -190,18 +197,18 @@ class Game:
                 my_lock.acquire()
 
                 data = client_socket.recv(1024).decode()
-                self.buffer += data
+                self.buffer = data
                 lock.release()
     
     def logic(self) :
         infos = self.buffer.split(" ")
-        self.bufffer = ""
+        
         if infos[1] == "play" :
-            self.play(infos[0],infos[2],infos[3])
+            self.play(int(infos[0]),int(infos[2]),int(infos[3]))
         elif infos[1] == "discard" :
-            self.discard(infos[0],infos[2])
+            self.discard(int(infos[0]),int(infos[2]))
         elif infos[1] == "info" :
-            self.information(infos[0],infos[2])
+            self.information(int(infos[0]),int(infos[2]))
             
 
     def start(self) :
@@ -254,9 +261,10 @@ class Game:
                 self.locks[(num_turn-1)%self.num_players].release()
                 
                 self.game_lock.acquire()
-                
+
+                print(self.buffer)
                 self.logic()
-               
+                self.bufffer = ""
             
                 won,lost = self.is_finished()
                 print("Turn",num_turn,"is over")
@@ -268,7 +276,7 @@ class Game:
 
 if __name__ == "__main__" :
     
-    jeu = Game(5,6698)
+    jeu = Game(5,6696)
     jeu.start()
     
 '''
