@@ -287,12 +287,7 @@ class Player :
                 except:
                     suite_index = input(f"Veuillez entrer un numéro de suite valide (0-{len(self.suites)-1}): ")
             self.play_card(card_index, suite_index)
-                    
-                
-
-
-                            
-            
+                     
     
     def game_on(self) :
         
