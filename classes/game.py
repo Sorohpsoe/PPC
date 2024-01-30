@@ -117,7 +117,7 @@ class Game:
         print(bottom)
 
         
-
+    
             
     def deals_cards(self):
         """Deal cards to each player"""
@@ -126,6 +126,23 @@ class Game:
             self.hands.append([])
             for _ in range(5):
                 self.hands[i].append(self.draw_pile.pop())
+
+    def information(self,id_joueur,id_neighbor):
+        self.info-=1
+        
+    def discard(self,id_joueur,index_card):
+        card=self.hands[id_joueur].pop(index_card)
+        self.discard_pile.append(card)
+        self.fuse-=1
+    
+    def draw(self,id_joueur):
+        card=self.draw_pile.pop()
+        self.hands[id_joueur].append(card)
+    
+    def play(self,id_joueur,index_card,index_suites):
+        card=self.hands[id_joueur].pop(index_card)
+        self.suites[index_suites].append(card)
+
                 
                 
 

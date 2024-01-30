@@ -98,7 +98,7 @@ class Player :
                     valid_color = True
                 else:
                     print("Couleur invalide. Veuillez choisir une couleur parmi :", self.colors)
-            message = f"Envoie un indice sur la couleur {color_input} au joueur {neighbor}"
+            message = f"{self.id} info {neighbor}"
             self.tcp_socket.send(message.encode())
             
             # Envoyer l'info a game ou au joueur
@@ -113,7 +113,7 @@ class Player :
                     print("Chiffre invalide. Veuillez choisir un chiffre entre 1 et 5.")
             
             # Envoyer l'info a game ou au joueur
-            message = f"Envoie un indice sur le chiffre {number_input} au joueur {neighbor}"
+            message = f"{self.id} info {neighbor}"
             self.tcp_socket.send(message.encode())
             
         else:
@@ -154,7 +154,7 @@ class Player :
                     if vide:
                         #Si notre carte est un 1 on la place sinon on la jette
                         if card_number==1:
-                            message = f"{self.id} play {card} {index_suites}"
+                            message = f"{self.id} play {index_card} {index_suites}"
                             self.tcp_socket.send(message.encode())
 
                         else:
@@ -163,7 +163,7 @@ class Player :
                         last_card=self.suites[index_suites][len(self.suites[index_suites])-1]
                         #Si notre carte est bien la carte de la meme couleur incrementée de 1 on la place, sinon on la jette
                         if last_card//5==card_color and last_card%5+1==card_number-1:
-                            message = f"{self.id} play {card} {index_suites}"
+                            message = f"{self.id} play {index_card} {index_suites}"
                             self.tcp_socket.send(message.encode())
                         else:
                             self.discard(index_card)
