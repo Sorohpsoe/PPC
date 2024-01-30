@@ -219,7 +219,7 @@ class Player :
             #If not discard the card
             else: 
                 last_card=self.suites[index_suites][len(self.suites[index_suites])-1]
-                if last_card//5==card_color and last_card%5+1==card_number-1:
+                if last_card//5==card_color and last_card%5+1==card_number-1 and len(self.suites[index_suites])<5:
                     print("\nBon choix ! votre carte a été ajoutée à la suite\n")
                     self.indice[index_card][0]=0
                     self.indice[index_card][1]=0
